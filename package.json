@@ -1,0 +1,30 @@
+{
+  "name": "crawler_depart",
+  "version": "1.0.0",
+  "description": "my experiment for query data",
+  "main": "index.js",
+  "scripts": {
+    "start": "node -r esm index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusuke50/crawler_depart.git"
+  },
+  "keywords": [
+    "crawler"
+  ],
+  "author": "yusuke50",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yusuke50/crawler_depart/issues"
+  },
+  "homepage": "https://github.com/yusuke50/crawler_depart#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cheerio": "^1.0.0-rc.3",
+    "esm": "^3.2.25",
+    "express": "^4.17.1",
+    "request": "^2.88.2"
+  }
+}
