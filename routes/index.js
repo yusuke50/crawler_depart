@@ -91,7 +91,7 @@ router.get('/getList', (req, res, next) => {
           })
         )
       }
-      // not get all data
+
       return Promise.all(promisePage);
     })
     .then((resT) => {
