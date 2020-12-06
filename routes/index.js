@@ -18,6 +18,79 @@ router.get('/index.html', (req, res, next) => {
 });
 
 router.get('/getList', (req, res, next) => {
+  const p = new Promise((resolve, reject) => {
+    request(`http://qservice.dba.tcg.gov.tw/depart/vdepart_list.asp?basare=${req.query.areaID}`, (err, response, body) => {
+      if (err) {
+        reject(err);
+      } else if (response.statusCode === 404) {
+        reject('404 error');
+      } else {
+        const $ = cheerio.load(body);
+        const tar = $('body tbody tbody tbody tbody tbody a[name="lastpage"]');
+        const re = /(\d+)/;
+        resolve(re.exec(tar.attr('href'))[0]);
+      }
+    });
+  });
+
+  p.then((res) => {
+    const pagePromise = [];
+    for (let i = 1; i <= parseInt(res, 10); i += 1) {
+      pagePromise.push(
+        new Promise((resolve, reject) => {
+          request(`http://qservice.dba.tcg.gov.tw/depart/vdepart_list.asp?basare=${req.query.areaID}&rspage=${i}`, (err, response, body) => {
+            if (err) {
+              reject(err);
+            } else if (response.statusCode === 404) {
+              reject('404 error');
+            } else {
+              const $ = cheerio.load(body);
+              const listResult = [];
+              for (let k = 4; k <= 13; k += 1) {
+                const o = {
+                  date: '',
+                  name: '',
+                  area: '',
+                  address: '',
+                  no: '',
+                  approve: '',
+                  note: '',
+                };
+
+                console.log($(`body tbody tbody tbody tbody tbody tr:nth-child(${k})`).text().indexOf('回查詢畫面'));
+                if ($(`body tbody tbody tbody tbody tbody tr:nth-child(${k})`).text().indexOf('回查詢畫面') > 0) {
+                  break;
+                } else {
+                  o.date = $(`body tbody tbody tbody tbody tbody tr:nth-child(${k}) td:nth-child(1)`).html();
+                  o.name = $(`body tbody tbody tbody tbody tbody tr:nth-child(${k}) td:nth-child(2)`).text();
+                  o.area = $(`body tbody tbody tbody tbody tbody tr:nth-child(${k}) td:nth-child(3)`).text();
+                  o.address = $(`body tbody tbody tbody tbody tbody tr:nth-child(${k}) td:nth-child(4)`).text();
+                  o.no = $(`body tbody tbody tbody tbody tbody tr:nth-child(${k}) td:nth-child(5)`).text();
+                  o.approve = $(`body tbody tbody tbody tbody tbody tr:nth-child(${k}) td:nth-child(6)`).text();
+                  o.note = $(`body tbody tbody tbody tbody tbody tr:nth-child(${k}) td:nth-child(7)`).text();
+
+                  listResult.push(o);
+                }
+              }
+              resolve(listResult);
+            }
+          });
+        })
+      )
+    }
+
+    return Promise.all(pagePromise);
+  })
+    .then((resP) => {
+      res.send(resP);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.send({ err });
+    })
+});
+
+/* router.get('/getList', (req, res, next) => {
   // const mapArea = [100, 103, 104, 105, 106, 108, 109, 110, 111, 112, 114, 115, 116];
   const mapArea = [100, 103];
   Promise.resolve('start getting page')
@@ -102,5 +175,5 @@ router.get('/getList', (req, res, next) => {
       console.error(err);
     });
 });
-
+ */
 export default router;
